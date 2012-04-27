@@ -29,6 +29,8 @@ import hashlib
 import struct
 
 BLOCK_SIZE = 2**13
+BLOCK_USE = 1
+BLOCK_DATA = 2
 
 def generate_signature(path, block_size=BLOCK_SIZE):
     signatures = []
@@ -44,14 +46,14 @@ def generate_signature(path, block_size=BLOCK_SIZE):
             break
     return ''.join(signatures)
 
-def unpack_signature(signature):
+def unpack_signature(binary_signature):
     """
     Takes the binary encoded signature and returns 3-tuples
     of offset, token, hash
     """
-    assert len(signature) % 28 == 0, "Invalid signature length"
-    for i in xrange(len(signature) // 28):
-        yield struct.unpack('>I8s16s', signature[i*28:(i+1)*28])
+    assert len(binary_signature) % 28 == 0, "Invalid signature length"
+    for i in xrange(len(binary_signature) // 28):
+        yield struct.unpack('>I8s16s', binary_signature[i*28:(i+1)*28])
 
 def generate_delta(path, signature, block_size=BLOCK_SIZE):
     sig_lookup = dict(
@@ -85,9 +87,9 @@ def pack_delta(delta):
     for what, data in delta:
         # length prefixed data or signature
         if what == 'data':
-            binary_delta.append(struct.pack('>bI', 1, len(data)) + data)
+            binary_delta.append(struct.pack('>bI', BLOCK_DATA, len(data)) + data)
         if what == 'use':
-            binary_delta.append(struct.pack('>bI', 2, len(data)) + data)
+            binary_delta.append(struct.pack('>bI', BLOCK_USE, len(data)) + data)
     return ''.join(binary_delta)
 
 def unpack_delta(binary_delta):
@@ -96,9 +98,9 @@ def unpack_delta(binary_delta):
         what, data_len = struct.unpack('>bI', binary_delta[i:i+5])
         data = binary_delta[i+5:i+5+data_len]
         assert len(data) == data_len, "Truncated data."
-        if what == 1:
+        if what == BLOCK_DATA:
             yield 'data', data
-        if what == 2:
+        if what == BLOCK_USE:
             yield 'use', data
         i += 5 + data_len
 
