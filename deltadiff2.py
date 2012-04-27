@@ -80,7 +80,7 @@ def generate_delta(path, signature, block_size=BLOCK_SIZE):
         start = i
 
     deltas.append(('data', data[start:]))
-    return deltas
+    return  _pack_delta(deltas)
 
 def _pack_delta(delta):
     binary_delta = []
@@ -138,7 +138,7 @@ def test_generate_delta():
             tf.flush()
         sig = generate_signature(tf.name)
         assert len(sig) == 252
-        delta = _pack_delta(generate_delta(tf.name, sig))
+        delta = generate_delta(tf.name, sig)
         assert len(delta) == 213
 
         # ensure we generate the same content
