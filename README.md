@@ -18,7 +18,7 @@ $  cat /tmp/data.tgz | python ent.py
 High entropy means something close to 1.
 
 I am avoiding the rolling hash because a pure python implementation is
-_very_ slow. The implementation below is, while not fast, at least
+_very_ slow. This implementation is, while not fast, at least
 usable for files up to a few hundred megabytes.
 
 # Example usage:
